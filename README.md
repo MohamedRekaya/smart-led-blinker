@@ -17,6 +17,7 @@ simple state handling without using STM32CubeMX.
 - On-board or external LED
 
 ## Project Structure
+```text
 Core/
 ├── Inc/
 │   ├── app/        # Application layer headers
@@ -31,7 +32,7 @@ Core/
 │
 config/              # Project configuration headers
 docs/                # Documentation
-
+```
 
 ## Build Environment
 - STM32CubeIDE
