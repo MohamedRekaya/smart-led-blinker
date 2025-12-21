@@ -16,7 +16,7 @@ static uint16_t led_id_to_pin(led_id_t led) {
 
 
 // Static variables
-static simple_blink_ctrl_t blink_ctrl[LED_COUNT] = {0};
+static led_blink_ctrl_t blink_ctrl[LED_COUNT] = {0};
 
 
 
@@ -173,14 +173,15 @@ void led_knight_rider(void) {
 }
 
 // SIMPLE Blink - uses counter instead of time
-void led_blink(led_id_t led, uint32_t on_threshold, uint32_t off_threshold) {
-    if (led >= LED_COUNT) return;
+void led_blink(led_id_t led, uint32_t on_time_ms, uint32_t off_time_ms) {
+	if (led >= LED_COUNT || on_time_ms == 0 || off_time_ms == 0) return;
 
-    blink_ctrl[led].on_threshold = on_threshold;
-    blink_ctrl[led].off_threshold = off_threshold;
-    blink_ctrl[led].is_blinking = true;
-    blink_ctrl[led].counter = 0;
+    blink_ctrl[led].on_time_ms = on_time_ms;
+    blink_ctrl[led].off_time_ms = off_time_ms;
+    blink_ctrl[led].last_toggle_ms = systick_get_ticks();  // Use systick!
     blink_ctrl[led].is_on = true;
+    blink_ctrl[led].is_blinking = true;
+
     led_on(led);
 }
 
@@ -191,39 +192,31 @@ void led_blink_stop(led_id_t led) {
 }
 
 
+void led_update_all(void) {
+    uint32_t current_time = systick_get_ticks();  // Get current time
 
-// Simple update - no time, just counting
-void led_update_all(void)
-{
-    for (led_id_t led = LED_GREEN; led < LED_COUNT; led++)
-    {
-        if (!blink_ctrl[led].is_blinking)
-            continue;
+    for (led_id_t led = LED_GREEN; led < LED_COUNT; led++) {
+        if (!blink_ctrl[led].is_blinking) continue;
 
-        blink_ctrl[led].counter++;
+        uint32_t elapsed = current_time - blink_ctrl[led].last_toggle_ms;
 
-        if (blink_ctrl[led].is_on)
-        {
-            if (blink_ctrl[led].counter >= blink_ctrl[led].on_threshold)
-            {
-                blink_ctrl[led].counter = 0;
-                blink_ctrl[led].is_on = false;
+        if (blink_ctrl[led].is_on) {
+            // Currently ON, check if time to turn OFF
+            if (elapsed >= blink_ctrl[led].on_time_ms) {
                 led_off(led);
+                blink_ctrl[led].is_on = false;
+                blink_ctrl[led].last_toggle_ms = current_time;
             }
-        }
-        else
-        {
-            if (blink_ctrl[led].counter >= blink_ctrl[led].off_threshold)
-            {
-                blink_ctrl[led].counter = 0;
-                blink_ctrl[led].is_on = true;
+        } else {
+            // Currently OFF, check if time to turn ON
+            if (elapsed >= blink_ctrl[led].off_time_ms) {
                 led_on(led);
+                blink_ctrl[led].is_on = true;
+                blink_ctrl[led].last_toggle_ms = current_time;
             }
         }
     }
 }
-
-
 
 
 

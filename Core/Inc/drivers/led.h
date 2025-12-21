@@ -11,12 +11,12 @@
 
 // Remove all timing structures - keep it simple!
 typedef struct {
-    uint32_t counter;
-    uint32_t on_threshold;
-    uint32_t off_threshold;
+    uint32_t last_toggle_ms; // Last toggle time (from systick)
+    uint32_t on_time_ms;
+    uint32_t off_time_ms;
     bool is_on;
     bool is_blinking;
-} simple_blink_ctrl_t;
+} led_blink_ctrl_t;
 
 //================================
 // Basic LED functions

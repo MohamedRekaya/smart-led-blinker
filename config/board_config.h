@@ -1,10 +1,22 @@
+/**
+  ******************************************************************************
+  * @file    board_config.h
+  * @brief   Board-specific configuration for STM32F407 Discovery.
+  ******************************************************************************
+  */
 #ifndef BOARD_CONFIG_H
 #define BOARD_CONFIG_H
 
+  /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
 #include "gpio_pins.h"
 
-// LED identifiers for Discovery board
+/* Exported types ------------------------------------------------------------*/
+
+
+/**
+  * @brief  LED identifiers for Discovery board.
+  */
 typedef enum {
     LED_GREEN = 0,  // PD12
     LED_ORANGE,     // PD13
@@ -13,6 +25,9 @@ typedef enum {
     LED_COUNT,
     LED_ALL = 0xFF  // Special value for all LEDs
 } led_id_t;
+
+/* Exported constants --------------------------------------------------------*/
+
 
 // LED GPIO Configuration
 #define LED_GPIO_PORT        GPIOD
@@ -40,14 +55,23 @@ typedef enum {
 
 #define LED_ALL_PINS     (LED_GREEN_PIN_MSK | LED_ORANGE_PIN_MSK | LED_RED_PIN_MSK | LED_BLUE_PIN_MSK)
 
-// User button (PA0)
-#define BUTTON_GPIO_PORT     GPIOA
-#define BUTTON_GPIO_PIN      GPIO_PIN_0
+/* Button Configuration ------------------------------------------------------*/
+#define BUTTON_GPIO_PORT         GPIOA       /*!< PA0 - User button */
+#define BUTTON_GPIO_PIN_MSK      GPIO_PIN_0
+#define BUTTON_EXTI_LINE         EXTI_Line0
+#define BUTTON_IRQN              EXTI0_IRQn
 #define BUTTON_GPIO_CLK_ENABLE() do { \
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN; \
 } while(0)
 
-// Timing
-#define SYSTEM_TICK_MS    1    // SysTick period in ms
+/* Timing Configuration ------------------------------------------------------*/
+#define DEBOUNCE_TIME_MS       50    /*!< Button de-bounce time */
+#define LONG_PRESS_TIME_MS     2000  /*!< 2 seconds for long press */
+#define DOUBLE_CLICK_MAX_MS    500   /*!< Max time between double clicks */
+#define SYSTEM_TICK_MS         1     /*!< SysTick period */
+
+/* Interrupt Priorities ------------------------------------------------------*/
+#define EXTI_PRIORITY          0     /*!< Highest priority for button */
+#define SYSTICK_PRIORITY       1     /*!< Medium priority for systick */
 
 #endif

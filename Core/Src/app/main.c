@@ -1,23 +1,29 @@
-
 #include "stm32f4xx.h"
+#include "systick.h"
 #include "led.h"
 
-// Simple blocking delay for testing
-static void delay_ms(uint32_t ms) {
-    for (volatile uint32_t i = 0; i < ms * 1600; i++) {
-        __NOP();
-    }
-}
 
+
+// Full test with all features
 int main(void) {
+    systick_init();
     led_init();
 
-    // Test only GREEN LED
-    led_blink(LED_GREEN, 750, 250);  // 50% duty cycle
-    led_blink(LED_ORANGE, 750, 250);
+    // All 4 LEDs with different patterns
+    led_blink(LED_GREEN,  100, 400);
+    led_blink(LED_ORANGE, 200, 300);
+    led_blink(LED_RED,    300, 200);
+    led_blink(LED_BLUE,   400, 100);
+
+    // Add non-blocking print every 1s
+    uint32_t last_print = 0;
 
     while (1) {
         led_update_all();
-        delay_ms(1);
+
+        if (systick_delay_elapsed(last_print, 1000)) {
+            // Debug output here
+            last_print = systick_get_ticks();
+        }
     }
 }
