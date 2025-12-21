@@ -15,20 +15,11 @@ static uint16_t led_id_to_pin(led_id_t led) {
 
 
 
-/*
-// Convert GPIO pin to LED ID (for iteration)
-static led_id_t pin_to_led_id(uint16_t pin) {
-    switch (pin) {
-        case LED_GREEN_PIN:  return LED_GREEN;
-        case LED_ORANGE_PIN: return LED_ORANGE;
-        case LED_RED_PIN:    return LED_RED;
-        case LED_BLUE_PIN:   return LED_BLUE;
-        default:             return LED_COUNT;
-    }
-}
-*/
+// Static variables
 static simple_blink_ctrl_t blink_ctrl[LED_COUNT] = {0};
-static uint32_t global_counter = 0;
+
+
+
 
 
 
@@ -57,6 +48,7 @@ void led_init(void) {
 		// PUPDR: No pull
 		GPIOD -> PUPDR &= ~(3U << (pin * 2));
 	}
+
 
 	// 3. Initial state: OFF
 	led_all_off();
@@ -184,7 +176,8 @@ void led_knight_rider(void) {
 void led_blink(led_id_t led, uint32_t on_threshold, uint32_t off_threshold) {
     if (led >= LED_COUNT) return;
 
-    blink_ctrl[led].threshold = on_threshold + off_threshold;
+    blink_ctrl[led].on_threshold = on_threshold;
+    blink_ctrl[led].off_threshold = off_threshold;
     blink_ctrl[led].is_blinking = true;
     blink_ctrl[led].counter = 0;
     blink_ctrl[led].is_on = true;
@@ -200,21 +193,36 @@ void led_blink_stop(led_id_t led) {
 
 
 // Simple update - no time, just counting
-void led_update_all(void) {
-    global_counter++;
+void led_update_all(void)
+{
+    for (led_id_t led = LED_GREEN; led < LED_COUNT; led++)
+    {
+        if (!blink_ctrl[led].is_blinking)
+            continue;
 
-    for (led_id_t led = LED_GREEN; led < LED_COUNT; led++) {
-        if (blink_ctrl[led].is_blinking) {
-            blink_ctrl[led].counter++;
+        blink_ctrl[led].counter++;
 
-            if (blink_ctrl[led].counter >= blink_ctrl[led].threshold) {
+        if (blink_ctrl[led].is_on)
+        {
+            if (blink_ctrl[led].counter >= blink_ctrl[led].on_threshold)
+            {
                 blink_ctrl[led].counter = 0;
-                led_toggle(led);
-                blink_ctrl[led].is_on = !blink_ctrl[led].is_on;
+                blink_ctrl[led].is_on = false;
+                led_off(led);
+            }
+        }
+        else
+        {
+            if (blink_ctrl[led].counter >= blink_ctrl[led].off_threshold)
+            {
+                blink_ctrl[led].counter = 0;
+                blink_ctrl[led].is_on = true;
+                led_on(led);
             }
         }
     }
 }
+
 
 
 

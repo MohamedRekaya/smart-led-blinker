@@ -12,11 +12,15 @@
 // Remove all timing structures - keep it simple!
 typedef struct {
     uint32_t counter;
-    uint32_t threshold;
+    uint32_t on_threshold;
+    uint32_t off_threshold;
     bool is_on;
     bool is_blinking;
 } simple_blink_ctrl_t;
 
+//================================
+// Basic LED functions
+//================================
 
 /**
  * @brief Initialize LED GPIO pin
@@ -56,6 +60,10 @@ void led_set(led_id_t led, bool state);
  */
 bool led_is_on(led_id_t led);
 
+//=============================
+// Multi-LED functions
+//=============================
+
 /**
  * @brief Turn all LEDs ON
  */
@@ -70,6 +78,10 @@ void led_all_off(void);
  * @brief Toggle all LEDs
  */
 void led_all_toggle(void);
+
+//============================
+// Pattern functions
+//===========================
 
 /**
  * @brief Set all LEDs to specific pattern
@@ -87,6 +99,10 @@ void led_chase(uint32_t delay_ms);
  * @brief Knight Rider pattern
  */
 void led_knight_rider(void);
+
+//=============================
+// Blink functions
+//============================
 
 
 /**
