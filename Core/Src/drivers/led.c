@@ -1,6 +1,7 @@
 #include "led.h"
 #include "board_config.h"
 #include "stm32f4xx.h"
+#include "systick.h"
 
 // Convert LED ID to GPIO pin
 static uint16_t led_id_to_pin(led_id_t led) {

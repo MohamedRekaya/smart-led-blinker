@@ -58,6 +58,7 @@ typedef enum {
 /* Button Configuration ------------------------------------------------------*/
 #define BUTTON_GPIO_PORT         GPIOA       /*!< PA0 - User button */
 #define BUTTON_GPIO_PIN_MSK      GPIO_PIN_0
+#define BUTTON_GPIO_PIN_NUM	     GPIO_PIN_0_NUM
 #define BUTTON_EXTI_LINE         EXTI_Line0
 #define BUTTON_IRQN              EXTI0_IRQn
 #define BUTTON_GPIO_CLK_ENABLE() do { \
@@ -67,7 +68,7 @@ typedef enum {
 /* Timing Configuration ------------------------------------------------------*/
 #define DEBOUNCE_TIME_MS       50    /*!< Button de-bounce time */
 #define LONG_PRESS_TIME_MS     2000  /*!< 2 seconds for long press */
-#define DOUBLE_CLICK_MAX_MS    500   /*!< Max time between double clicks */
+#define DOUBLE_CLICK_MAX_MS    1000   /*!< Max time between double clicks */
 #define SYSTEM_TICK_MS         1     /*!< SysTick period */
 
 /* Interrupt Priorities ------------------------------------------------------*/

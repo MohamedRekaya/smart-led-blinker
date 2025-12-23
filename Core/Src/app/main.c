@@ -1,29 +1,61 @@
 #include "stm32f4xx.h"
-#include "systick.h"
 #include "led.h"
+#include "systick.h"
+#include "button.h"
 
 
-
-// Full test with all features
 int main(void) {
-    systick_init();
-    led_init();
+    /* 1. Initialize system */
+    systick_init();     /* Must be first for timing */
+    led_init();         /* Initialize LEDs */
+    button_init();      /* Initialize button with EXTI */
 
-    // All 4 LEDs with different patterns
-    led_blink(LED_GREEN,  100, 400);
-    led_blink(LED_ORANGE, 200, 300);
-    led_blink(LED_RED,    300, 200);
-    led_blink(LED_BLUE,   400, 100);
+    /* 2. Initial state */
+    led_on(LED_GREEN);  /* Start with green ON */
+    led_off(LED_ORANGE);
+    led_off(LED_RED);
+    led_off(LED_BLUE);
 
-    // Add non-blocking print every 1s
-    uint32_t last_print = 0;
-
+    /* 3. Main loop */
     while (1) {
-        led_update_all();
+        /* Update button state machine */
+        button_update();
 
-        if (systick_delay_elapsed(last_print, 1000)) {
-            // Debug output here
-            last_print = systick_get_ticks();
+        /* Check for button events */
+        button_event_t event = button_get_event();
+
+        /* Handle events */
+        switch (event) {
+            case BUTTON_EVENT_PRESSED:
+                /* Button pressed - toggle orange LED */
+                led_toggle(LED_ORANGE);
+                break;
+
+            case BUTTON_EVENT_RELEASED:
+                /* Button released - toggle red LED */
+                led_toggle(LED_RED);
+                break;
+
+            case BUTTON_EVENT_LONG_PRESS:
+                /* Long press (2s) - toggle blue LED */
+                led_toggle(LED_BLUE);
+                break;
+
+            case BUTTON_EVENT_DOUBLE_CLICK:
+                /* Double click - toggle all LEDs */
+                led_all_toggle();
+                break;
+
+            case BUTTON_EVENT_NONE:
+            default:
+                /* No event */
+                break;
         }
+
+        /* Update any blinking LEDs (if using blink functions) */
+        // led_update_all();
+
+        /* Optional: Small sleep to reduce CPU usage */
+        // __WFI();
     }
 }
