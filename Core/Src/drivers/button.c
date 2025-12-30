@@ -11,6 +11,9 @@
 #include "systick.h"
 #include "stm32f4xx.h"
 
+extern void sleep_manager_wake(void);
+extern bool sleep_manager_is_sleeping(void);
+
 /* Private typedef -----------------------------------------------------------*/
 
 /**
@@ -140,6 +143,12 @@ void button_exti_handler(void) {
     if (EXTI->PR & EXTI_PR_PR0) {
         /* Clear pending bit */
         EXTI->PR = EXTI_PR_PR0;
+        // Check if we're waking from sleep
+        if (sleep_manager_is_sleeping()) {
+            // Wake up the system
+            sleep_manager_wake();
+            return;  // Skip normal button processing
+        }
 
         /* Update button state based on interrupt */
         bool pressed = button_is_pressed_raw();
