@@ -1,61 +1,66 @@
 #include "stm32f4xx.h"
 #include "led.h"
-#include "systick.h"
 #include "button.h"
-
+#include "systick.h"
+#include "pattern_manager.h"
 
 int main(void) {
-    /* 1. Initialize system */
-    systick_init();     /* Must be first for timing */
-    led_init();         /* Initialize LEDs */
-    button_init();      /* Initialize button with EXTI */
+    /* 1. Initialize system (ORDER MATTERS!) */
+    systick_init();             /* Must be first for timing */
+    led_init();                 /* Initialize LEDs */
+    button_init();              /* Initialize button with EXTI */
+    pattern_manager_init();     /* Initialize pattern manager */
 
-    /* 2. Initial state */
-    led_on(LED_GREEN);  /* Start with green ON */
-    led_off(LED_ORANGE);
-    led_off(LED_RED);
-    led_off(LED_BLUE);
+    /* 2. Enable global interrupts */
+    __enable_irq();
 
-    /* 3. Main loop */
+    /* 3. Start with pattern 0 (Solid) */
+    pattern_manager_set_pattern(PATTERN_SOLID);
+    pattern_manager_start();    /* Start pattern execution */
+
+    /* 4. Main loop */
     while (1) {
         /* Update button state machine */
         button_update();
 
-        /* Check for button events */
+        /* Handle button events */
         button_event_t event = button_get_event();
 
-        /* Handle events */
         switch (event) {
             case BUTTON_EVENT_PRESSED:
-                /* Button pressed - toggle orange LED */
-                led_toggle(LED_ORANGE);
-                break;
-
-            case BUTTON_EVENT_RELEASED:
-                /* Button released - toggle red LED */
-                led_toggle(LED_RED);
+                /* Short press: Toggle pattern pause/resume */
+                if (pattern_manager_get_state() == PATTERN_STATE_RUNNING) {
+                    pattern_manager_pause();
+                    led_all_on();  /* Show paused state */
+                } else {
+                    pattern_manager_resume();
+                    led_all_off(); /* Resume pattern */
+                }
                 break;
 
             case BUTTON_EVENT_LONG_PRESS:
-                /* Long press (2s) - toggle blue LED */
-                led_toggle(LED_BLUE);
+                /* Long press: Next pattern */
+                pattern_manager_next();
                 break;
 
             case BUTTON_EVENT_DOUBLE_CLICK:
-                /* Double click - toggle all LEDs */
-                led_all_toggle();
+                /* Double click: Previous pattern */
+                pattern_manager_prev();
                 break;
 
-            case BUTTON_EVENT_NONE:
+            case BUTTON_EVENT_RELEASED:
+                /* Release: Can be used for additional features */
+                break;
+
             default:
                 /* No event */
                 break;
         }
 
-        /* Update any blinking LEDs (if using blink functions) */
-        // led_update_all();
+        /* Update pattern (non-blocking) */
+        pattern_manager_update();
 
-        /* Optional: Small sleep to reduce CPU usage */
-        // __WFI();
+        /* Small delay to reduce CPU usage */
+        for (volatile int i = 0; i < 1000; i++);
     }
 }
